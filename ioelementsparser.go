@@ -32,6 +32,9 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		}
 
 		totalElements = int(x)
+		if DEBUG {
+			fmt.Println("Total codec 8e elements to decode", totalElements)
+		}
 	} else if codecID == 0x08 {
 		x, err := b2n.ParseBs2Uint8(bs, start)
 		if err != nil {
@@ -62,13 +65,26 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		noOfElements = int(z)
 	}
 
+	if DEBUG {
+		fmt.Println("1B Elements to decode", noOfElements)
+	}
 	nextByte = nextByte + codecLenDel
 
 	for ioB := 0; ioB < noOfElements; ioB++ {
+
+		// guard against slice out of range
+		if nextByte+codecLenDel+1 > len(*bs) {
+			// Print what we got and raise error
+			// fmt.Printf("DecodeElements 1B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v\n", nextByte, codecLenDel, len(*bs))
+			fmt.Printf("For debug: Partial Elements parsed: %+v\n", ElementsBS)
+			return []Element{}, 0, fmt.Errorf("DecodeElements 1B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v", nextByte, codecLenDel, len(*bs))
+		}
+
 		cutted, err := cutIO(bs, nextByte, codecLenDel, 1)
 		if err != nil {
 			return []Element{}, 0, fmt.Errorf("DecodeElements 1B error %v", err)
 		}
+
 		//append element to the returned slice
 		ElementsBS = append(ElementsBS, cutted)
 		nextByte += codecLenDel + 1
@@ -90,9 +106,19 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		noOfElements = int(noOfElementsX)
 	}
 
+	if DEBUG {
+		fmt.Println("2B Elements to decode", noOfElements)
+	}
+
 	nextByte = nextByte + codecLenDel
 
 	for ioB := 0; ioB < noOfElements; ioB++ {
+		// guard against slice out of range
+		if nextByte+codecLenDel+1 > len(*bs) {
+			fmt.Printf("For debug: Partial Elements parsed: %+v\n", ElementsBS)
+			return []Element{}, 0, fmt.Errorf("DecodeElements 2B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v", nextByte, codecLenDel, len(*bs))
+		}
+
 		cutted, err := cutIO(bs, nextByte, codecLenDel, 2)
 		if err != nil {
 			return []Element{}, 0, fmt.Errorf("DecodeElements 2B error %v", err)
@@ -118,9 +144,18 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		noOfElements = int(noOfElementsX)
 	}
 
+	if DEBUG {
+		fmt.Println("4B Elements to decode", noOfElements)
+	}
+
 	nextByte = nextByte + codecLenDel
 
 	for ioB := 0; ioB < noOfElements; ioB++ {
+		// guard against slice out of range
+		if nextByte+codecLenDel+1 > len(*bs) {
+			fmt.Printf("For debug: Partial Elements parsed: %+v\n", ElementsBS)
+			return []Element{}, 0, fmt.Errorf("DecodeElements 4B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v", nextByte, codecLenDel, len(*bs))
+		}
 		cutted, err := cutIO(bs, nextByte, codecLenDel, 4)
 		if err != nil {
 			return []Element{}, 0, fmt.Errorf("DecodeElements 4B error %v", err)
@@ -146,9 +181,18 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		noOfElements = int(noOfElementsX)
 	}
 
+	if DEBUG {
+		fmt.Println("8B Elements to decode", noOfElements)
+	}
+
 	nextByte = nextByte + codecLenDel
 
 	for ioB := 0; ioB < noOfElements; ioB++ {
+		// guard against slice out of range
+		if nextByte+codecLenDel+1 > len(*bs) {
+			fmt.Printf("For debug: Partial Elements parsed: %+v\n", ElementsBS)
+			return []Element{}, 0, fmt.Errorf("DecodeElements 8B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v", nextByte, codecLenDel, len(*bs))
+		}
 		cutted, err := cutIO(bs, nextByte, codecLenDel, 8)
 		if err != nil {
 			return []Element{}, 0, fmt.Errorf("DecodeElements 8B error %v", err)
@@ -168,9 +212,18 @@ func DecodeElements(bs *[]byte, start int, codecID byte) ([]Element, int, error)
 		}
 		noOfElements = int(noOfElementsX)
 
+		if DEBUG {
+			fmt.Println("variableB Elements to decode", noOfElements)
+		}
+
 		nextByte = nextByte + codecLenDel
 
 		for ioB := 0; ioB < noOfElements; ioB++ {
+			// guard against slice out of range
+			if nextByte+codecLenDel+4 > len(*bs) {
+				fmt.Printf("For debug: Partial Elements parsed: %+v\n", ElementsBS)
+				return []Element{}, 0, fmt.Errorf("DecodeElements 2B error: slice out of range, nextByte %v, codecLenDel %v, bs length %v", nextByte, codecLenDel, len(*bs))
+			}
 			cutted, err := cutIOxLen(bs, nextByte)
 			if err != nil {
 				return []Element{}, 0, fmt.Errorf("DecodeElements 2B error %v", err)
