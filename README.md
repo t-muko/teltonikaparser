@@ -1,3 +1,7 @@
+# Mods by t-muko
+
+- Added debug logging. Activate by setting environment variable `TELTONIKA_PARSER_DEBUG=true`
+
 # Package teltonikaparser provides GO parser and validator for Teltonika Codec 8 and Codec 8 Extended
 
 Certain purpose:
