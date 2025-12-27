@@ -68,10 +68,13 @@ func PrettyPrintAvlData(avlData AvlData) {
 }
 
 // Decode takes a pointer to a slice of bytes with raw data and return Decoded struct
-func Decode(bs *[]byte) (Decoded, error) {
+// Optionally parse truncated data if parseTruncated is set to true
+func Decode(bs *[]byte, parseTruncated bool) (Decoded, error) {
 	decoded := Decoded{}
 	var err error
 	var nextByte int
+
+	ignoreElements := false
 
 	// check for minimum packet size
 	if len(*bs) < 45 {
@@ -137,11 +140,6 @@ func Decode(bs *[]byte) (Decoded, error) {
 
 		if DEBUG {
 			fmt.Println("Decoding data block", i+1, "of", decoded.NoOfData, "at byte", nextByte)
-		}
-
-		// check for truncated data
-		if nextByte+30 > len(*bs) {
-			return Decoded{}, fmt.Errorf("Truncated data when decoding avl data block %v, not enough bytes to continue parsing", i+1)
 		}
 
 		decodedData := AvlData{}
@@ -239,13 +237,27 @@ func Decode(bs *[]byte) (Decoded, error) {
 			nextByte++
 		}
 
+		// parse IO elements
 		decodedIO, endByte, err := DecodeElements(bs, nextByte, decoded.CodecID)
-		if err != nil {
-			return Decoded{}, fmt.Errorf("DecodeElements error for IMEI ...%s:\n%v", decoded.IMEI[len(decoded.IMEI)-5:], err)
+		if parseTruncated && err != nil {
+			// some teltonika devices
+			// send wrong length in UDP packets, so we will try to parse what we can
+			// and ignore the rest of the data
+			// If we got this far, we have got AvlData fixed part parsed correctly
+			// so we will just ignore data Elements and return what we have parsed so far
+			fmt.Printf("Warning: DecodeElements error for IMEI ...%s, at AvlData %d of %d ignoring data Elements:\n%v\n", decoded.IMEI[len(decoded.IMEI)-5:], i, len(decoded.Data), err)
+			ignoreElements = true
+		} else {
+			if err != nil {
+				return Decoded{}, fmt.Errorf("DecodeElements error for IMEI ...%s:\n%v", decoded.IMEI[len(decoded.IMEI)-5:], err)
+			}
 		}
 
 		nextByte = endByte
-		decodedData.Elements = decodedIO
+
+		if !ignoreElements {
+			decodedData.Elements = decodedIO
+		}
 
 		decoded.Data = append(decoded.Data, decodedData)
 
@@ -258,10 +270,12 @@ func Decode(bs *[]byte) (Decoded, error) {
 		return Decoded{}, fmt.Errorf("Error when counting number of parsed data, want %v, got %v", int(decoded.NoOfData), len(decoded.Data))
 	}
 
-	// check if packet was corretly parsed
-	endNoOfData := (*bs)[nextByte]
-	if decoded.NoOfData != endNoOfData {
-		return Decoded{}, fmt.Errorf("Unexpected byte representing control num. of data on end of parsing, want %#x, got %#x", decoded.NoOfData, endNoOfData)
+	if !ignoreElements {
+		// check if packet was corretly parsed
+		endNoOfData := (*bs)[nextByte]
+		if decoded.NoOfData != endNoOfData {
+			return Decoded{}, fmt.Errorf("Unexpected byte representing control num. of data on end of parsing, want %#x, got %#x", decoded.NoOfData, endNoOfData)
+		}
 	}
 
 	// create response packet
