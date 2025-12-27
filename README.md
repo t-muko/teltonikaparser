@@ -78,7 +78,7 @@ import (
    "fmt"
    "log"
 
-    "github.com/filipkroca/teltonikaparser"
+    "github.com/t-muko/teltonikaparser"
 )
 
 func main() {
@@ -160,7 +160,7 @@ import (
    "fmt"
    "log"
     "encoding/hex"
-    "github.com/filipkroca/teltonikaparser"
+    "github.com/t-muko/teltonikaparser"
 )
 
 func main() {
@@ -245,7 +245,7 @@ import (
     "sync/atomic"
     "time"
 
-    "github.com/filipkroca/teltonikaparser"
+    "github.com/t-muko/teltonikaparser"
     _ "github.com/go-sql-driver/mysql"
 )
 

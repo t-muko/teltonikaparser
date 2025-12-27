@@ -138,6 +138,23 @@ func Decode(bs *[]byte, parseTruncated bool) (Decoded, error) {
 	// go through data
 	for i := 0; i < int(decoded.NoOfData); i++ {
 
+		// check that we have enough data left to parse another AvlData
+		minAvlDataSize := 8 + 1 + 4 + 4 + 2 + 2 + 1 + 2 // UtimeMs + Priority + Lng + Lat + Altitude + Angle + VisSat + Speed
+		if decoded.CodecID == 0x8e {
+			minAvlDataSize += 2 // EventID is 2 bytes in Codec 8 extended
+		} else {
+			minAvlDataSize += 1 // EventID is 1 byte in Codec 8
+		}
+		if len(*bs)-nextByte < minAvlDataSize {
+			ignoreElements = true
+		}
+
+		if ignoreElements {
+			// we are ignoring rest of data Elements so just break from the loop
+			fmt.Println("Ignoring rest of data Elements, breaking from loop")
+			break
+		}
+
 		if DEBUG {
 			fmt.Println("Decoding data block", i+1, "of", decoded.NoOfData, "at byte", nextByte)
 		}
@@ -266,11 +283,12 @@ func Decode(bs *[]byte, parseTruncated bool) (Decoded, error) {
 		}
 	}
 
-	if int(decoded.NoOfData) != len(decoded.Data) {
-		return Decoded{}, fmt.Errorf("Error when counting number of parsed data, want %v, got %v", int(decoded.NoOfData), len(decoded.Data))
-	}
-
 	if !ignoreElements {
+
+		if int(decoded.NoOfData) != len(decoded.Data) {
+			return Decoded{}, fmt.Errorf("Error when counting number of parsed data, want %v, got %v", int(decoded.NoOfData), len(decoded.Data))
+		}
+
 		// check if packet was corretly parsed
 		endNoOfData := (*bs)[nextByte]
 		if decoded.NoOfData != endNoOfData {
