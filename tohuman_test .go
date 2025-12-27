@@ -16,7 +16,7 @@ func ExampleDecode() {
 
 	bs, _ := hex.DecodeString(stringData)
 	// decode a raw data byte slice
-	parsedData, err := Decode(&bs)
+	parsedData, err := Decode(&bs, false)
 	if err != nil {
 		log.Panicf("Error when decoding a bs, %v\n", err)
 	}
@@ -28,7 +28,7 @@ func ExampleDecode() {
 	bs, _ = hex.DecodeString(stringData)
 
 	// decode a raw data byte slice
-	parsedData, err = Decode(&bs)
+	parsedData, err = Decode(&bs, false)
 	if err != nil {
 		log.Panicf("Error when decoding a bs, %v\n", err)
 	}
@@ -51,7 +51,7 @@ func ExampleHumanDecoder_Human() {
 	bs, _ := hex.DecodeString(stringData)
 
 	// decode a raw data byte slice
-	parsedData, err := Decode(&bs)
+	parsedData, err := Decode(&bs, false)
 	if err != nil {
 		log.Panicf("Error when decoding a bs, %v\n", err)
 	}
@@ -197,7 +197,7 @@ func ExampleHumanDecoder_AvlDataToHuman() {
 	bs, _ := hex.DecodeString(stringData)
 
 	// decode a raw data byte slice
-	parsedData, err := Decode(&bs)
+	parsedData, err := Decode(&bs, false)
 	if err != nil {
 		log.Panicf("Error when decoding a bs, %v\n", err)
 	}
@@ -221,7 +221,7 @@ func BenchmarkDecode(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := Decode(&bs)
+		_, err := Decode(&bs, false)
 		if err != nil {
 			log.Panicf("Error when decoding a bs, %v\n", err)
 		}
@@ -240,7 +240,7 @@ func BenchmarkHuman(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 
 		// decode a raw data byte slice
-		parsedData, err := Decode(&bs)
+		parsedData, err := Decode(&bs, false)
 		if err != nil {
 			log.Panicf("Error when decoding a bs, %v\n", err)
 		}
